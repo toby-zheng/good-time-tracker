@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#2a2f8f">
+<title>Good Time Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#fff;--muted:rgba(255,255,255,.72);
+    --glass:linear-gradient(145deg,rgba(255,255,255,.34),rgba(255,255,255,.10));
+    --edge:inset 0 1px 1px rgba(255,255,255,.75),inset 0 -1px 1px rgba(255,255,255,.18),inset 0 0 22px rgba(255,255,255,.10),0 10px 32px rgba(10,15,50,.28);}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{background:#1b2150}
+  body{margin:0;font-family:"Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);display:flex;flex-direction:column;align-items:center;padding:max(28px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(48px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));min-height:100vh;min-height:100dvh;-webkit-text-size-adjust:100%;-webkit-touch-callout:none;position:relative;overflow-x:hidden;
+    background:linear-gradient(160deg,#2a2f8f 0%,#3a1f78 45%,#0f4d7a 100%) fixed}
+  /* drifting color orbs for the glass to refract */
+  body::before,body::after{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;filter:blur(40px)}
+  body::before{background:
+    radial-gradient(320px 320px at 18% 22%,rgba(217,58,58,.85),transparent 70%),
+    radial-gradient(360px 360px at 82% 30%,rgba(47,85,212,.9),transparent 70%),
+    radial-gradient(300px 300px at 30% 82%,rgba(31,157,85,.8),transparent 70%),
+    radial-gradient(340px 340px at 78% 86%,rgba(234,184,18,.75),transparent 70%);
+    animation:drift 26s ease-in-out infinite alternate}
+  body::after{background:radial-gradient(500px 400px at 50% 50%,rgba(255,255,255,.10),transparent 70%);animation:drift 34s ease-in-out infinite alternate-reverse}
+  @keyframes drift{from{transform:translate3d(-4%,-3%,0) scale(1)}to{transform:translate3d(5%,4%,0) scale(1.12)}}
+  h1{margin:0 0 4px;font-weight:800;font-size:36px;letter-spacing:-.03em;text-shadow:0 2px 18px rgba(10,15,50,.35)}
+  .sub{margin:0 0 20px;color:var(--muted);font-size:15px;text-align:center;font-weight:500}
+  .board{display:flex;gap:8px;width:min(620px,100%);padding:10px;border-radius:30px;background:var(--glass);
+    -webkit-backdrop-filter:blur(22px) saturate(1.6);backdrop-filter:blur(22px) saturate(1.6);
+    border:1px solid rgba(255,255,255,.38);box-shadow:var(--edge)}
+  .col{flex:1;position:relative;touch-action:none;user-select:none;cursor:grab;outline:none;border-radius:20px;overflow:hidden;box-shadow:0 4px 14px rgba(10,15,50,.35),0 0 0 1px rgba(255,255,255,.55)}
+  .col:focus-visible{box-shadow:0 0 0 3px #fff,0 4px 14px rgba(10,15,50,.35)}
+  .col svg{display:block;width:100%;height:auto}
+  .labels{display:flex;gap:8px;width:min(620px,100%);margin-top:12px}
+  .lab{flex:1;text-align:center;padding:10px 4px 9px;border-radius:22px;background:var(--glass);
+    -webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5);
+    border:1px solid rgba(255,255,255,.35);box-shadow:var(--edge);font-weight:700;font-size:14px}
+  .lab .nm{display:inline-flex;align-items:center;gap:6px;letter-spacing:-.01em}
+  .lab .nm i{width:9px;height:9px;border-radius:50%;box-shadow:0 0 8px currentColor,inset 0 1px 1px rgba(255,255,255,.7)}
+  .lab small{display:block;font-weight:500;font-size:11px;line-height:1.25;color:var(--muted);padding:0 6px}
+  .lab .num{display:inline-block;font-size:30px;font-weight:800;letter-spacing:-.03em;transition:transform .15s}
+  .lab .num.pulse{transform:scale(1.3)}
+  .actions{margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  button{font-family:inherit;font-weight:600;font-size:15px;color:#fff;border:1px solid rgba(255,255,255,.5);border-radius:999px;padding:12px 24px;cursor:pointer;
+    background:linear-gradient(145deg,rgba(255,255,255,.42),rgba(255,255,255,.14));
+    -webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);
+    box-shadow:var(--edge);text-shadow:0 1px 6px rgba(10,15,50,.35);transition:transform .15s,background .2s}
+  button:hover{transform:translateY(-1px);background:linear-gradient(145deg,rgba(255,255,255,.55),rgba(255,255,255,.2))}
+  button:active{transform:scale(.97)}
+  button.ghost{background:linear-gradient(145deg,rgba(255,255,255,.22),rgba(255,255,255,.06))}
+  .panel{width:min(620px,100%);margin-top:24px;padding:18px 20px;border-radius:28px;background:var(--glass);
+    -webkit-backdrop-filter:blur(22px) saturate(1.6);backdrop-filter:blur(22px) saturate(1.6);border:1px solid rgba(255,255,255,.35);box-shadow:var(--edge)}
+  .panel h2{margin:0 0 8px;font-size:17px;font-weight:700;letter-spacing:-.01em}
+  .entry{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid rgba(255,255,255,.22);font-size:14px}
+  .entry:first-of-type{border-top:0}
+  .entry .d{width:104px;color:var(--muted)}
+  .dots{display:flex;gap:12px;flex:1}
+  .dot{display:flex;align-items:center;gap:4px;font-weight:700}
+  .dot i{width:11px;height:11px;border-radius:50%;display:inline-block;box-shadow:inset 0 1px 1px rgba(255,255,255,.7),0 0 6px rgba(255,255,255,.35)}
+  .hint{font-size:13px;color:var(--muted);margin-top:10px;text-align:center}
+  .row{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap}
+  .entry{flex-direction:column;align-items:stretch;gap:4px}
+  .note{margin:2px 0 4px;font-size:14px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere;color:rgba(255,255,255,.92)}
+  button.x{margin-left:auto;padding:0;width:34px;height:34px;font-size:20px;line-height:1;border-radius:50%;background:rgba(255,255,255,.12);box-shadow:none;text-shadow:none;border:1px solid rgba(255,255,255,.3)}
+  .panel h2 small{font-weight:500;font-size:12px;color:var(--muted);margin-left:6px}
+  textarea{display:block;width:100%;min-height:120px;resize:vertical;font:inherit;font-size:16px;line-height:1.45;color:#fff;
+    background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.35);border-radius:18px;padding:12px 14px;outline:none;
+    box-shadow:inset 0 2px 8px rgba(10,15,50,.25);-webkit-appearance:none;appearance:none}
+  textarea::placeholder{color:rgba(255,255,255,.6)}
+  textarea:focus{border-color:#fff;background:rgba(255,255,255,.18)}
+  .journal{margin-top:22px}
+  button{min-height:44px;touch-action:manipulation}
+  @media (max-width:480px){h1{font-size:30px}.board{padding:7px;gap:6px;border-radius:24px}.col{border-radius:16px}.labels{gap:6px}.lab{border-radius:18px;font-size:13px}.lab small{font-size:10px}.lab .num{font-size:26px}.entry .d{width:auto}}
+</style>
+</head>
+<body>
+<h1>Good Time Tracker</h1>
+<p class="sub">Slide each climber to where you are right now. There is no goal height. This is just a way to notice.</p>
+
+<div class="board" id="board"></div>
+<div class="labels" id="labels"></div>
+
+<div class="panel journal">
+  <h2>Journal <small>optional</small></h2>
+  <textarea id="note" rows="4" placeholder="What's behind where you are today? What's lifting or weighing on each area?" aria-label="Journal entry"></textarea>
+</div>
+
+<div class="actions">
+  <button id="save">Save check-in</button>
+  <button class="ghost" id="reset">Reset climbers</button>
+</div>
+<div class="hint" id="msg">&nbsp;</div>
+
+<div class="panel">
+  <h2>Past check-ins</h2>
+  <div id="log"><div class="hint">No check-ins saved yet.</div></div>
+</div>
+
+<script>
+const CATS=[
+  {key:"engagement",name:"Engagement",sub:"absorbed in what I'm doing",color:"#d93a3a"},
+  {key:"energy",name:"Energy",sub:"physically & mentally charged",color:"#1f9d55"},
+  {key:"purpose",name:"Purpose",sub:"it mattered / had meaning",color:"#eab812"},
+  {key:"joy",name:"Joy",sub:"I enjoyed it",color:"#2f55d4"}
+];
+const LEVELS=10, W=140, H=470, TOP=54, BOT=H-66, CX=W/2;
+const ARM1=16, ARM2=17, LEG1=19, LEG2=19, ARM_R=31, LEG_R=36;
+const SVGNS="http://www.w3.org/2000/svg";
+const f=n=>n.toFixed(1);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const yFor=l=>BOT-(l-1)*(BOT-TOP)/(LEVELS-1);
+const levelFor=y=>clamp(Math.round(1+(BOT-y)*(LEVELS-1)/(BOT-TOP)),1,LEVELS);
+
+function mix(hex,t,to){ // blend hex toward white/black
+  const n=parseInt(hex.slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255,tr=to==="w"?255:0;
+  const m=v=>Math.round(v+(tr-v)*t);return "#"+[m(r),m(g),m(b)].map(v=>v.toString(16).padStart(2,"0")).join("");
+}
+function rng(seed){let s=seed;return()=>{s=(s*9301+49297)%233280;return s/233280}}
+
+/* ---------- state + storage ---------- */
+const LOGKEY="gtt-log-v1", CURKEY="gtt-current-v1";
+function lsGet(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+const state={}; CATS.forEach(c=>state[c.key]=1);
+const saved=lsGet(CURKEY); if(saved) CATS.forEach(c=>{if(saved[c.key]>=1&&saved[c.key]<=LEVELS) state[c.key]=saved[c.key]});
+
+/* ---------- hold generation ---------- */
+function blobPath(cx,cy,r,asp,rot,rand){
+  const n=9,pts=[];
+  for(let i=0;i<n;i++){
+    const a=i/n*Math.PI*2, rr=r*(0.74+0.4*rand());
+    let x=Math.cos(a)*rr*asp, y=Math.sin(a)*rr;
+    const cr=Math.cos(rot),sr=Math.sin(rot);
+    pts.push([cx+x*cr-y*sr, cy+x*sr+y*cr]);
+  }
+  let d=`M${f(pts[0][0])} ${f(pts[0][1])}`;
+  for(let i=0;i<n;i++){
+    const p0=pts[(i-1+n)%n],p1=pts[i],p2=pts[(i+1)%n],p3=pts[(i+2)%n];
+    d+=`C${f(p1[0]+(p2[0]-p0[0])/6)} ${f(p1[1]+(p2[1]-p0[1])/6)} ${f(p2[0]-(p3[0]-p1[0])/6)} ${f(p2[1]-(p3[1]-p1[1])/6)} ${f(p2[0])} ${f(p2[1])}`;
+  }
+  return d+"Z";
+}
+function makeHolds(seed){
+  const r=rng(seed),holds=[];
+  let row=0;
+  for(let y=34;y<H-34;y+=16.5,row++){
+    const zones=[[20,50],[52,88],[90,120]].sort(()=>r()-.5);
+    const count=r()<.35?2:1;
+    for(let k=0;k<count;k++){
+      const z=zones[k], x=z[0]+r()*(z[1]-z[0]), yy=y+r()*8-4, t=r();
+      let size,asp,rot=(r()-.5)*1.4,kind;
+      if(t<.3){size=6.5+r()*2.5;asp=1.05;kind="jug"}
+      else if(t<.5){size=4.2+r()*1.4;asp=1.9;kind="crimp";rot*=.4}
+      else if(t<.68){size=7.2+r()*2;asp=1.25;kind="sloper"}
+      else if(t<.82){size=4.6+r()*1.2;asp=.55;kind="pinch";rot*=.5}
+      else {size=3.6+r()*1.2;asp=1.1;kind="small"}
+      holds.push({x,y:yy,size,asp,rot,kind,d:blobPath(x,yy,size,asp,rot,r)});
+    }
+  }
+  return holds;
+}
+
+/* ---------- build board ---------- */
+const board=document.getElementById("board"), labels=document.getElementById("labels");
+const cols={};
+const mk=(tag,attrs,parent)=>{const e=document.createElementNS(SVGNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e};
+
+CATS.forEach((c,i)=>{
+  const holds=makeHolds(i*131+17);
+  const r=rng(i*57+3);
+  let speck="";
+  for(let s=0;s<70;s++) speck+=`<circle cx="${f(r()*W)}" cy="${f(r()*H)}" r="${f(.4+r()*.8)}" fill="#c9c1ae" opacity=".55"/>`;
+  let holdSvg="";
+  holds.forEach(h=>{
+    holdSvg+=`<path d="${h.d}" transform="translate(1.6 2.2)" fill="rgba(0,0,0,.28)"/>`+
+      `<path d="${h.d}" fill="url(#g-${c.key})" stroke="${mix(c.color,.35,"b")}" stroke-width=".7"/>`+
+      `<ellipse cx="${f(h.x-h.size*.25*h.asp)}" cy="${f(h.y-h.size*.32)}" rx="${f(h.size*.38*Math.max(.7,h.asp*.7))}" ry="${f(h.size*.2)}" fill="#fff" opacity=".32" transform="rotate(${f(h.rot*57)} ${f(h.x)} ${f(h.y)})"/>`;
+    if(h.kind==="jug"||h.kind==="sloper") holdSvg+=`<circle cx="${f(h.x)}" cy="${f(h.y)}" r="1.5" fill="#2e2a24" opacity=".75"/>`;
+  });
+  let ticks="";
+  for(let l=1;l<=LEVELS;l++) ticks+=`<text x="3" y="${f(yFor(l)+2)}" font-family="Inter,sans-serif" font-size="6" fill="#8c8470" opacity=".7">${l}</text>`;
+
+  const col=document.createElement("div");
+  col.className="col";col.tabIndex=0;col.setAttribute("role","slider");
+  col.setAttribute("aria-label",c.name);col.setAttribute("aria-valuemin",1);col.setAttribute("aria-valuemax",LEVELS);
+  col.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <radialGradient id="g-${c.key}" cx=".35" cy=".3" r=".85">
+        <stop offset="0" stop-color="${mix(c.color,.4,"w")}"/>
+        <stop offset=".55" stop-color="${c.color}"/>
+        <stop offset="1" stop-color="${mix(c.color,.3,"b")}"/>
+      </radialGradient>
+      <linearGradient id="wall-${c.key}" x1="0" x2="1"><stop offset="0" stop-color="#f7f4ec"/><stop offset=".5" stop-color="#fcfbf7"/><stop offset="1" stop-color="#f1ede2"/></linearGradient>
+    </defs>
+    <rect width="${W}" height="${H}" fill="url(#wall-${c.key})"/>
+    ${speck}
+    <rect class="fill" x="0" width="${W}" fill="${c.color}" opacity=".11"/>
+    ${ticks}
+    ${holdSvg}
+    <!-- crash mat -->
+    <rect x="0" y="${H-18}" width="${W}" height="18" fill="#4b5563"/>
+    <rect x="0" y="${H-18}" width="${W}" height="3" fill="#6b7280"/>
+    <line x1="${W/2}" y1="${H-15}" x2="${W/2}" y2="${H}" stroke="#374151" stroke-width="1"/>
+    <!-- top anchor -->
+    <rect x="${CX-9}" y="2" width="18" height="6" rx="2" fill="#6b7280"/>
+    <circle cx="${CX}" cy="11" r="4.4" fill="none" stroke="#9ca3af" stroke-width="2"/>
+    <g class="ropes"></g>
+    <g class="chalk"></g>
+    <g class="climber"></g>
+  </svg>`;
+  board.appendChild(col);
+
+  const lab=document.createElement("div");lab.className="lab";
+  lab.innerHTML=`<span class="nm"><i style="background:${c.color};color:${c.color}"></i>${c.name}</span><br><span class="num" id="n-${c.key}">${state[c.key]}</span><small>${c.sub}</small>`;
+  labels.appendChild(lab);
+
+  // --- rope + climber elements
+  const svg=col.querySelector("svg"), ropes=col.querySelector(".ropes"), g=col.querySelector(".climber"), chalkG=col.querySelector(".chalk");
+  const ropeCol=mix(c.color,.1,"b"), shirt=mix(c.color,.18,"b"), skin="#e0ac84", pants="#2f3542";
+  const E={};
+  E.slackBase=mk("path",{fill:"none",stroke:"#2a2a2a",opacity:.25,"stroke-width":4.2,"stroke-linecap":"round"},ropes);
+  E.slack=mk("path",{fill:"none",stroke:ropeCol,"stroke-width":3.2,"stroke-linecap":"round"},ropes);
+  E.slackT=mk("path",{fill:"none",stroke:"#fff","stroke-width":3.2,"stroke-dasharray":"1.6 3.4",opacity:.55},ropes);
+  E.rope=mk("path",{fill:"none",stroke:ropeCol,"stroke-width":3.2,"stroke-linecap":"round"},ropes);
+  E.ropeT=mk("path",{fill:"none",stroke:"#fff","stroke-width":3.2,"stroke-dasharray":"1.6 3.4",opacity:.55},ropes);
+  E.biner=mk("circle",{r:3.2,fill:"none",stroke:"#d1d5db","stroke-width":1.6},ropes);
+
+  E.legL=mk("polyline",{fill:"none",stroke:pants,"stroke-width":6.2,"stroke-linecap":"round","stroke-linejoin":"round"},g);
+  E.legR=mk("polyline",{fill:"none",stroke:pants,"stroke-width":6.2,"stroke-linecap":"round","stroke-linejoin":"round"},g);
+  E.shoeL=mk("ellipse",{rx:4.4,ry:2.7,fill:"#222"},g);
+  E.shoeR=mk("ellipse",{rx:4.4,ry:2.7,fill:"#222"},g);
+  E.chalkBag=mk("rect",{width:6,height:7,rx:2,fill:"#f5f5f5",stroke:"#9ca3af","stroke-width":.7},g);
+  E.torso=mk("path",{fill:shirt,stroke:shirt,"stroke-width":3,"stroke-linejoin":"round"},g);
+  E.harness=mk("path",{fill:"none",stroke:"#1f2937","stroke-width":2.6,"stroke-linecap":"round"},g);
+  E.harnessLoop=mk("path",{fill:"none",stroke:"#1f2937","stroke-width":1.6,"stroke-linecap":"round"},g);
+  E.uarmL=mk("polyline",{fill:"none",stroke:shirt,"stroke-width":4.8,"stroke-linecap":"round","stroke-linejoin":"round"},g);
+  E.uarmR=mk("polyline",{fill:"none",stroke:shirt,"stroke-width":4.8,"stroke-linecap":"round","stroke-linejoin":"round"},g);
+  E.farmL=mk("polyline",{fill:"none",stroke:skin,"stroke-width":3.6,"stroke-linecap":"round","stroke-linejoin":"round"},g);
+  E.farmR=mk("polyline",{fill:"none",stroke:skin,"stroke-width":3.6,"stroke-linecap":"round","stroke-linejoin":"round"},g);
+  E.handL=mk("circle",{r:2.6,fill:skin},g);
+  E.handR=mk("circle",{r:2.6,fill:skin},g);
+  E.neck=mk("rect",{width:3.6,height:4,fill:skin},g);
+  E.head=mk("circle",{r:5.2,fill:skin},g);
+  E.helmet=mk("path",{fill:"#f8f8f8",stroke:c.color,"stroke-width":1.4},g);
+  E.helmetStripe=mk("path",{fill:"none",stroke:c.color,"stroke-width":1.6,"stroke-linecap":"round"},g);
+
+  const limbs={
+    handL:{kind:"hand",side:-1,hold:null,p:{x:CX-12,y:0}},
+    handR:{kind:"hand",side:1,hold:null,p:{x:CX+12,y:0}},
+    footL:{kind:"foot",side:-1,hold:null,p:{x:CX-8,y:0}},
+    footR:{kind:"foot",side:1,hold:null,p:{x:CX+8,y:0}}
+  };
+  const y0=yFor(state[c.key]);
+  cols[c.key]={cat:c,col,svg,E,holds,limbs,chalkG,lab:lab.querySelector(".num"),
+    y:y0,vy:0,target:y0,dragging:false,level:state[c.key],px:0,particles:[],phase:i*1.7};
+  col.setAttribute("aria-valuenow",state[c.key]);
+});
+
+/* ---------- climbing logic ---------- */
+function ik(sx,sy,tx,ty,l1,l2,pick){
+  let dx=tx-sx,dy=ty-sy,d=Math.hypot(dx,dy)||.001;
+  const maxd=(l1+l2)*.995;
+  if(d>maxd){tx=sx+dx/d*maxd;ty=sy+dy/d*maxd;dx=tx-sx;dy=ty-sy;d=maxd}
+  const a=(l1*l1-l2*l2+d*d)/(2*d), h=Math.sqrt(Math.max(0,l1*l1-a*a));
+  const mx=sx+dx/d*a,my=sy+dy/d*a,px=-dy/d*h,py=dx/d*h;
+  const c1={x:mx+px,y:my+py},c2={x:mx-px,y:my-py};
+  return {elbow:pick(c1,c2),hand:{x:tx,y:ty}};
+}
+function validHold(L,h,sx,sy){
+  const d=Math.hypot(h.x-sx,h.y-sy);
+  if(L.kind==="hand") return h.y<sy-5 && d<=ARM_R;
+  return h.y>sy+12 && d<=LEG_R;
+}
+function pickHold(C,L,other,sx,sy){
+  const hand=L.kind==="hand", ix=sx+L.side*(hand?13:9), iy=hand?sy-25:sy+31;
+  let best=null,bd=1e9;
+  for(const h of C.holds){
+    if(h===other) continue;
+    if(!validHold(L,h,sx,sy)) continue;
+    if(L.side<0? h.x>sx+7 : h.x<sx-7) continue;
+    const d=Math.hypot(h.x-ix,h.y-iy);
+    if(d<bd){bd=d;best=h}
+  }
+  return best;
+}
+
+function spawnChalk(C,x,y){
+  for(let k=0;k<5;k++){
+    const el=mk("circle",{r:(1+Math.random()*1.4).toFixed(1),fill:"#f3f1ea"},C.chalkG);
+    C.particles.push({el,x,y,vx:(Math.random()-.5)*1.1,vy:-Math.random()*.9,life:1});
+  }
+}
+
+function frame(C,t,dt){
+  const E=C.E;
+  // spring physics
+  const k=C.dragging?.2:.085, damp=C.dragging?.68:.8;
+  C.vy+=(C.target-C.y)*k*dt; C.vy*=Math.pow(damp,dt); C.y+=C.vy*dt;
+  const y=C.y, vy=C.vy;
+
+  // sway & body
+  const sway=clamp(-vy*.55,-7,7)+Math.sin(t*1.3+C.phase)*1.1;
+  const bx=CX+sway;
+  const hipY=y+13, shY=y-12+Math.sin(t*2.1+C.phase)*.35;
+  const lean=clamp(vy*.3,-3,3);
+
+  // limbs: re-pick holds when invalid, then ease positions
+  const sxL=bx-5.5, sxR=bx+5.5;
+  const sh={handL:[sxL,shY],handR:[sxR,shY],footL:[bx-3.5,hipY],footR:[bx+3.5,hipY]};
+  const pairs={handL:"handR",handR:"handL",footL:"footR",footR:"footL"};
+  for(const key in C.limbs){
+    const L=C.limbs[key],[sx,sy]=sh[key],other=C.limbs[pairs[key]].hold;
+    if(!L.hold||!validHold(L,L.hold,sx,sy)){
+      L.hold=pickHold(C,L,other,sx,sy);
+    }
+    let tx,ty;
+    if(L.hold){tx=L.hold.x;ty=L.hold.y}
+    else if(L.kind==="hand"){tx=sx+L.side*12;ty=sy-24}
+    else{tx=sx+L.side*8;ty=sy+30}
+    const e=Math.min(1,.28*dt);
+    L.p.x+=(tx-L.p.x)*e; L.p.y+=(ty-L.p.y)*e;
+  }
+
+  // torso polygon
+  const shx=bx+lean;
+  E.torso.setAttribute("d",`M${f(shx-8)} ${f(shY+1)}L${f(shx+8)} ${f(shY+1)}L${f(bx+6)} ${f(hipY)}L${f(bx-6)} ${f(hipY)}Z`);
+  E.harness.setAttribute("d",`M${f(bx-6.6)} ${f(hipY-2.6)}L${f(bx+6.6)} ${f(hipY-2.6)}`);
+  E.harnessLoop.setAttribute("d",`M${f(bx-5)} ${f(hipY)}L${f(bx-5.5)} ${f(hipY+7)}M${f(bx+5)} ${f(hipY)}L${f(bx+5.5)} ${f(hipY+7)}`);
+  E.chalkBag.setAttribute("x",f(bx+3.5));E.chalkBag.setAttribute("y",f(hipY-2));
+
+  // arms
+  const armPick=(c1,c2)=>c1.y>c2.y?c1:c2;
+  [["handL","uarmL","farmL",sxL],["handR","uarmR","farmR",sxR]].forEach(([k,u,fa,sx])=>{
+    const s0=sx+(k==="handL"?-2.5:2.5)+lean*.5, p=C.limbs[k].p;
+    const r=ik(s0,shY+1.5,p.x,p.y,ARM1,ARM2,armPick);
+    E[u].setAttribute("points",`${f(s0)},${f(shY+1.5)} ${f(r.elbow.x)},${f(r.elbow.y)}`);
+    E[fa].setAttribute("points",`${f(r.elbow.x)},${f(r.elbow.y)} ${f(r.hand.x)},${f(r.hand.y)}`);
+    E[k].setAttribute("cx",f(r.hand.x));E[k].setAttribute("cy",f(r.hand.y));
+  });
+  // legs
+  [["footL","legL","shoeL",-1],["footR","legR","shoeR",1]].forEach(([k,lg,sh2,side])=>{
+    const s0x=bx+side*3.4, p=C.limbs[k].p;
+    const r=ik(s0x,hipY,p.x,p.y,LEG1,LEG2,(c1,c2)=>side<0?(c1.x<c2.x?c1:c2):(c1.x>c2.x?c1:c2));
+    E[lg].setAttribute("points",`${f(s0x)},${f(hipY)} ${f(r.elbow.x)},${f(r.elbow.y)} ${f(r.hand.x)},${f(r.hand.y)}`);
+    E[sh2].setAttribute("cx",f(r.hand.x));E[sh2].setAttribute("cy",f(r.hand.y+1));
+  });
+
+  // head (back view with helmet)
+  const hx=shx+lean*.6, hy=shY-8;
+  E.neck.setAttribute("x",f(hx-1.8));E.neck.setAttribute("y",f(shY-4));
+  E.head.setAttribute("cx",f(hx));E.head.setAttribute("cy",f(hy));
+  E.helmet.setAttribute("d",`M${f(hx-6.4)} ${f(hy+.8)}A6.4 6.6 0 0 1 ${f(hx+6.4)} ${f(hy+.8)}Z`);
+  E.helmetStripe.setAttribute("d",`M${f(hx)} ${f(hy-6.2)}L${f(hx)} ${f(hy+.4)}`);
+
+  // ropes: top-rope up to anchor, loose belay strand down
+  const rsx=clamp(-vy*1.6,-22,22)+Math.sin(t*1.7+C.phase)*2.6;
+  const mxr=(CX+bx)/2+rsx, myr=(12+hipY)/2;
+  const d1=`M${CX} 12Q${f(mxr)} ${f(myr)} ${f(bx)} ${f(hipY)}`;
+  E.rope.setAttribute("d",d1);E.ropeT.setAttribute("d",d1);
+  const slackX=CX+26+Math.sin(t*1.1+C.phase)*3+rsx*.2;
+  const d2=`M${CX} 12C${f(CX+10)} ${f(H*.3)} ${f(slackX+14)} ${f(H*.45)} ${f(slackX)} ${f(H-12)}`;
+  E.slack.setAttribute("d",d2);E.slackT.setAttribute("d",d2);E.slackBase.setAttribute("d",d2);
+  E.biner.setAttribute("cx",CX);E.biner.setAttribute("cy",12);
+
+  // chalk puffs
+  for(let i=C.particles.length-1;i>=0;i--){
+    const p=C.particles[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=.03*dt;p.life-=.035*dt;
+    if(p.life<=0){p.el.remove();C.particles.splice(i,1);continue}
+    p.el.setAttribute("cx",f(p.x));p.el.setAttribute("cy",f(p.y));p.el.setAttribute("opacity",f(p.life*.8));
+  }
+
+  // fill tint
+  const fill=C.col.querySelector(".fill");fill.setAttribute("y",f(y));fill.setAttribute("height",f(Math.max(0,H-y)));
+}
+
+/* ---------- interaction ---------- */
+function setLevel(C,l){
+  if(l===C.level) return;
+  C.level=l;state[C.cat.key]=l;
+  C.lab.textContent=l;C.lab.classList.add("pulse");setTimeout(()=>C.lab.classList.remove("pulse"),160);
+  C.col.setAttribute("aria-valuenow",l);
+}
+function releaseChalk(C){
+  const a=C.limbs.handL.p,b=C.limbs.handR.p;spawnChalk(C,a.x,a.y);spawnChalk(C,b.x,b.y);
+}
+CATS.forEach(c=>{
+  const C=cols[c.key];
+  const yFrom=ev=>{const r=C.svg.getBoundingClientRect();return clamp((ev.clientY-r.top)*H/r.height,TOP,BOT)};
+  C.col.addEventListener("pointerdown",ev=>{C.dragging=true;C.col.setPointerCapture(ev.pointerId);C.col.style.cursor="grabbing";C.target=yFrom(ev);setLevel(C,levelFor(C.target))});
+  C.col.addEventListener("pointermove",ev=>{if(!C.dragging)return;C.target=yFrom(ev);setLevel(C,levelFor(C.target))});
+  const end=()=>{if(!C.dragging)return;C.dragging=false;C.col.style.cursor="grab";C.target=yFor(C.level);lsSet(CURKEY,state);releaseChalk(C)};
+  C.col.addEventListener("pointerup",end);C.col.addEventListener("pointercancel",end);
+  C.col.addEventListener("keydown",ev=>{
+    let d=0;if(ev.key==="ArrowUp"||ev.key==="ArrowRight")d=1;if(ev.key==="ArrowDown"||ev.key==="ArrowLeft")d=-1;
+    if(!d)return;ev.preventDefault();setLevel(C,clamp(C.level+d,1,LEVELS));C.target=yFor(C.level);lsSet(CURKEY,state);
+  });
+});
+
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(2.5,(now-last)/16.667);last=now;
+  const t=now/1000;
+  for(const k in cols) frame(cols[k],t,dt);
+  requestAnimationFrame(loop);
+}
+// warm start so limbs begin on holds
+CATS.forEach(c=>{const C=cols[c.key];for(let i=0;i<30;i++)frame(C,0,1)});
+requestAnimationFrame(loop);
+
+/* ---------- save / log ---------- */
+const msg=document.getElementById("msg");
+function say(t){msg.textContent=t;setTimeout(()=>{if(msg.textContent===t)msg.innerHTML="&nbsp;"},2500)}
+const esc=t=>String(t).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+function renderLog(){
+  const log=lsGet(LOGKEY)||[],box=document.getElementById("log");
+  if(!log.length){box.innerHTML='<div class="hint">No check-ins saved yet.</div>';return}
+  box.innerHTML=log.slice().reverse().slice(0,30).map(en=>{
+    const d=new Date(en.t).toLocaleString([], {month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+    const dots=CATS.map(c=>`<span class="dot"><i style="background:${c.color}"></i>${en.v[c.key]}</span>`).join("");
+    return `<div class="entry"><div class="row"><span class="d">${d}</span><span class="dots">${dots}</span><button class="x" data-t="${en.t}" aria-label="Delete entry">&times;</button></div>${en.note?`<p class="note">${esc(en.note)}</p>`:""}</div>`;
+  }).join("");
+}
+renderLog();
+const noteEl=document.getElementById("note");
+const draft=lsGet("gtt-draft-v1"); if(typeof draft==="string") noteEl.value=draft;
+noteEl.addEventListener("input",()=>lsSet("gtt-draft-v1",noteEl.value));
+document.getElementById("log").addEventListener("click",ev=>{
+  const b=ev.target.closest("button.x"); if(!b) return;
+  const t=Number(b.dataset.t); lsSet(LOGKEY,(lsGet(LOGKEY)||[]).filter(e=>e.t!==t)); renderLog();
+});
+document.getElementById("save").onclick=()=>{
+  const log=lsGet(LOGKEY)||[];
+  log.push({t:Date.now(),v:{...state},note:noteEl.value.trim()});
+  lsSet(LOGKEY,log.slice(-200));
+  noteEl.value="";lsSet("gtt-draft-v1","");
+  renderLog();say("Check-in saved.");
+};
+document.getElementById("reset").onclick=()=>{
+  CATS.forEach(c=>{const C=cols[c.key];setLevel(C,1);C.target=yFor(1);C.lab.textContent=1});
+  lsSet(CURKEY,state);say("Climbers reset.");
+};
+</script>
+</body>
+</html>
